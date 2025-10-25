@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #06b6d4;
+  --color-background: #0b1020;
+  --color-text: #e2e8f0;
+  --color-card: #0f1724;
+  --color-blue: #2563eb;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-gray: #6b7280;
+}
+
+
+@keyframes snake {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 400% 50%;
+  }
+}
+html {
+  scroll-padding-top: 80px; /* Adjust based on your navbar height */
+  scroll-behavior: smooth;
+}
+
+.animate-snake {
+  animation: snake 2.5s  linear infinite;
+  -webkit-animation: snake 2.5s  linear infinite;
+}
+body {
+  background: linear-gradient(270deg, #0b1020, #1e293b, #0b1020, #1e293b);
+  background-size: 400% 400%;
+  color: var(--color-text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+}

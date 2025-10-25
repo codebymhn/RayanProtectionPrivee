@@ -11,7 +11,6 @@
   --color-gray: #6b7280;
 }
 
-
 @keyframes snake {
   0% {
     background-position: 0% 50%;
@@ -20,15 +19,17 @@
     background-position: 400% 50%;
   }
 }
+
 html {
   scroll-padding-top: 80px; /* Adjust based on your navbar height */
   scroll-behavior: smooth;
 }
 
 .animate-snake {
-  animation: snake 2.5s  linear infinite;
-  -webkit-animation: snake 2.5s  linear infinite;
+  animation: snake 2.5s linear infinite;
+  -webkit-animation: snake 2.5s linear infinite;
 }
+
 body {
   background: linear-gradient(270deg, #0b1020, #1e293b, #0b1020, #1e293b);
   background-size: 400% 400%;
@@ -37,3 +38,58 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* ===============================
+   ✨ Animations for Contact Page
+   =============================== */
+
+/* Fade In (used when success/error appears) */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out both;
+}
+
+/* Fade Out (used when message disappears after 2.5s) */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.6s ease-in forwards;
+}
+
+/* Optional: Scale In (for icons like ✅ checkmark) */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease-out both;
+}
+/* ===============================
+   ✨ End of Animations for Contact Page
+   =============================== */

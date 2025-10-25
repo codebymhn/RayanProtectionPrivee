@@ -1,93 +1,156 @@
-// src/components/ActivationGate.tsx
-import { useEffect, useState, type JSX } from "react";
-import { verifyLicenseOnline } from "../utils/licenseCheck";
+import React, { useState, useEffect, useCallback } from "react";
 
-type ActivationGateProps = {
-  onActivated: () => void;
-  activated: boolean;
-};
+interface Props {
+  children: React.ReactNode;
+}
 
-export default function ActivationGate({
-  onActivated,
-  activated,
-}: ActivationGateProps): JSX.Element | null {
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
+const ActivationGate: React.FC<Props> = ({ children }) => {
+  const API_URL = import.meta.env.VITE_API_URL;
+  const [key, setKey] = useState("");
+  const [activated, setActivated] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => setError(null), [input]);
+  // ✅ Verify key manually (client activation)
+  const verifyKey = useCallback(
+    async (providedKey: string) => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/api/validate-key`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: providedKey }),
+        });
 
-  async function handleSubmit(e?: React.FormEvent) {
-    e?.preventDefault();
-    setLoading(true);
-    setError(null);
+        const data = await res.json();
 
-    const valid = await verifyLicenseOnline(input.trim());
-    setLoading(false);
+        if (res.ok && data.valid) {
+          localStorage.setItem("licenseKey", providedKey);
+          setActivated(true);
+          setError(null);
+        } else {
+          setActivated(false);
+          setError(data.message || "Clé invalide. Veuillez réessayer.");
+        }
+      } catch (err) {
+        console.error("Erreur de validation de la clé:", err);
+        setActivated(false);
+        setError("Impossible de contacter le serveur d’activation.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [API_URL]
+  );
 
-    if (valid) {
-      localStorage.setItem("rp_activated", "1");
-      onActivated();
-      setOpen(false);
-    } else {
-      setError("Clé invalide. Veuillez vérifier ou contacter le développeur.");
-    }
+  // ✅ On load, check if globally activated
+  useEffect(() => {
+    const checkGlobalActivation = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/check-activation`);
+        const data = await res.json();
+        if (data.activated) {
+          setActivated(true);
+        } else {
+          const savedKey = localStorage.getItem("licenseKey");
+          if (savedKey) await verifyKey(savedKey);
+          else setActivated(false);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la vérification:", err);
+        setActivated(false);
+      }
+    };
+    checkGlobalActivation();
+  }, [API_URL, verifyKey]);
+
+  // ✅ UI
+  if (activated === null || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-700 text-lg">
+        <div className="animate-pulse">Vérification de l’activation...</div>
+      </div>
+    );
   }
 
-  if (activated) return null; // ✅ Don't render button or modal if already activated
-
-  return (
-    <>
-      {/* Floating activation button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed z-[9999] right-4 bottom-4 bg-black/70 text-white px-3 py-2 rounded-lg shadow-lg hover:bg-black/80"
-      >
-        Activation
-      </button>
-
-      {open && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
-          />
-          <form
-            onSubmit={handleSubmit}
-            className="relative z-10 w-full max-w-md bg-white dark:bg-slate-800 rounded-lg p-6 shadow-xl"
-          >
-            <h3 className="text-lg font-semibold mb-3 text-slate-900 dark:text-slate-100">
-              Activation du site
-            </h3>
-            <p className="text-sm mb-4 text-slate-600 dark:text-slate-300">
-              Entrez la clé d'activation fournie par le développeur pour
-              déverrouiller le site.
+  if (!activated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-tr from-gray-50 via-gray-100 to-gray-200 px-4">
+        <div className="bg-white border border-gray-300 shadow-[0_8px_20px_rgba(0,0,0,0.06)] rounded-lg p-10 max-w-md w-full text-center transition-all">
+          <div className="mb-6">
+            <div className="flex justify-center mb-3">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-8 h-8 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 11c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zM12 11v10m6-10a6 6 0 10-12 0 6 6 0 0012 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Activation requise
+            </h1>
+            <p className="text-gray-600 mt-2 text-sm">
+              Veuillez entrer votre clé de licence pour accéder au site.
             </p>
+          </div>
 
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              verifyKey(key);
+            }}
+            className="space-y-4"
+          >
             <input
               type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Entrez la clé ici"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring mt-1"
-              autoFocus
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="Entrez votre clé de licence"
+              className="w-full border border-gray-300 p-3 rounded-md text-center text-gray-900 
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+              transition duration-200 placeholder-gray-400"
+              required
             />
 
-            {error && <div className="text-sm text-red-600 mt-2">{error}</div>}
-
-            <div className="flex items-center justify-end mt-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60"
-              >
-                {loading ? "Vérification..." : "Activer"}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 font-semibold tracking-wide rounded-md text-white 
+                transition-all duration-300 shadow-md ${
+                  loading
+                    ? "bg-blue-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 active:scale-[0.98]"
+                }`}
+            >
+              {loading ? "Activation..." : "Activer le site"}
+            </button>
           </form>
+
+          {error && (
+            <p className="text-red-600 mt-4 font-medium text-sm animate-fadeIn">
+              {error}
+            </p>
+          )}
+
+          <p className="text-gray-400 text-xs mt-8">
+            © {new Date().getFullYear()} CodeByMhn e-mail:codebymhn@gmail.com
+          </p>
         </div>
-      )}
-    </>
-  );
-}
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
+export default ActivationGate;

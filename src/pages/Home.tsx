@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, type JSX } from "react";
-import LockSVG from "../components/LockSVG";
+import { useRef, useEffect, type JSX } from "react";
+import LogoAnimation from "../components/LogoAnimation";
 import BentoBox from "../components/BentoBox";
 import CTA from "../components/CTA";
 
@@ -57,8 +57,6 @@ function ClientMediaSection() {
 }
 
 export default function Home(): JSX.Element {
-  const [open] = useState(false);
-
   return (
     <div>
       <section className="max-w-7xl mx-auto px-6 py-20 flex gap-10 items-center">
@@ -89,7 +87,7 @@ export default function Home(): JSX.Element {
 
         <div className="w-1/3 hidden lg:block">
           <div className="card p-6 flex flex-col items-center">
-            <LockSVG key={open ? "open" : "closed"} />
+            <LogoAnimation />
           </div>
         </div>
       </section>

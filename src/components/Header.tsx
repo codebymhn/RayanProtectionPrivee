@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Shield } from "lucide-react";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,7 +18,11 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-(--color-primary)" />
+          <img
+            src="/public/media/logo-removebg-preview.png"
+            alt="Logo Rayan Protection Privée"
+            className="w-10 h-10 object-contain rounded-full"
+          />
           <span className="font-bold text-2xl text-white hover:text-blue-400 transition-colors duration-300">
             RayanProtectionPrivée
           </span>
